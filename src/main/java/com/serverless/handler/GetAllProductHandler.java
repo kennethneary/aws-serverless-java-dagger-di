@@ -21,8 +21,6 @@ public class GetAllProductHandler extends BaseEventHandler {
 
     @Override
     public void inject(final AppComponent appComponent) {
-        LOG.info("GetAllHandler...inject");
-
         appComponent.inject(this);
     }
 

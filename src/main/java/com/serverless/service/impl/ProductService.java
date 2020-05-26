@@ -55,8 +55,13 @@ public class ProductService implements ProductManager {
         LOG.info("getProductById - id: {}", id);
 
         final Product product = this.db.getById(id);
-        final Content content = this.osm.getObject(PRODUCTS_BUCKET_NAME.getValue(), id);
-        product.setContent(content);
+        try {
+            final Content content = this.osm.getObject(PRODUCTS_BUCKET_NAME.getValue(), id);
+            product.setContent(content);
+        } catch (S3Exception s3e) {
+            LOG.error("S3Exception: {}", s3e);
+            if (s3e.statusCode() != 404) throw s3e;
+        }
         return product;
     }
 
@@ -70,7 +75,7 @@ public class ProductService implements ProductManager {
         try {
             this.osm.deleteObject(PRODUCTS_BUCKET_NAME.getValue(), id);
         } catch (S3Exception s3e) {
-            LOG.error("S3Exception", s3e);
+            LOG.error("S3Exception: {}", s3e);
             if (s3e.statusCode() != 404) throw s3e;
         }
     }
