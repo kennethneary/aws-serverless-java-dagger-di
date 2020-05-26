@@ -1,0 +1,128 @@
+service:
+  name: aws-serverless-java-dagger-di
+
+custom:
+  productsTableName: '${self:service.name}-${self:provider.stage}-table'
+  productsBucketName: '${self:service.name}-${self:provider.stage}-bucket'
+  prune:
+    automatic: true
+    includeLayers: true
+    number: 1
+
+provider:
+  name: aws
+  runtime: java8
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'eu-west-1'}
+  apiKeys:
+    - ${self:service.name}-${self:provider.stage}
+  timeout: 29
+#  deploymentBucket:
+#    name: ${file(./config.json:deploymentBucket)}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - Fn::GetAtt: ['ProductsDynamoDBTable', 'Arn' ]
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource:
+        - Fn::Sub:
+            - '#{TABLE_ARN}/index/*'
+            - TABLE_ARN:
+                Fn::GetAtt: ['ProductsDynamoDBTable', 'Arn' ]
+
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        - Fn::GetAtt: ['ProductsS3Bucket', 'Arn' ]
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource:
+        - Fn::Sub:
+          - '#{BUCKET}/*'
+          - BUCKET:
+              Fn::GetAtt: ['ProductsS3Bucket', 'Arn' ]
+
+  environment:
+    PRODUCTS_TABLE_NAME: ${self:custom.productsTableName}
+    PRODUCTS_TABLE_PRIMARY_ID: id
+    PRODUCTS_TABLE_SECONDARY_INDEX: nameIndex
+    PRODUCTS_BUCKET_NAME: ${self:custom.productsBucketName}
+
+plugins:
+  - serverless-cloudformation-sub-variables
+  - serverless-prune-plugin
+
+package:
+  artifact: 'target/${self:service.name}-${self:provider.stage}.jar'
+
+functions:
+  listAllProducts:
+    handler: com.serverless.handler.GetAllProductHandler
+    events:
+      - http:
+          path: /products
+          method: get
+          cors: true
+          private: true
+
+  queryProductByName:
+    handler: com.serverless.handler.QueryProductHandler
+    events:
+      - http:
+          path: /products/query
+          method: get
+          cors: true
+          private: true
+
+  getProduct:
+    handler: com.serverless.handler.GetProductHandler
+    events:
+      - http:
+          path: /products/{id}
+          method: get
+          cors: true
+          private: true
+
+  createProduct:
+    handler: com.serverless.handler.CreateProductHandler
+    events:
+      - http:
+          path: /products
+          method: post
+          cors: true
+          private: true
+
+  updateProduct:
+    handler: com.serverless.handler.UpdateProductHandler
+    events:
+      - http:
+          path: /products/{id}
+          method: put
+          cors: true
+          private: true
+
+  deleteProduct:
+    handler: com.serverless.handler.DeleteProductHandler
+    events:
+      - http:
+          path: /products/{id}
+          method: delete
+          cors: true
+          private: true
+
+resources:
+  - ${file(templates/product-table.yml)}
+  - ${file(templates/s3-bucket.yml)}
