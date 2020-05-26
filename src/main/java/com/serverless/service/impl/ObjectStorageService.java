@@ -2,8 +2,6 @@ package com.serverless.service.impl;
 
 import com.serverless.model.Content;
 import com.serverless.service.ObjectStorageManager;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,18 +17,18 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-@Getter
-@Setter
 public class ObjectStorageService implements ObjectStorageManager {
 
     private static final Logger LOG = LogManager.getLogger(ObjectStorageService.class);
 
+    @Inject S3Client s3;
+
     @Inject
-    public S3Client s3;
+    public ObjectStorageService() {}
 
     @Override
     public void saveObject(final String bucketName, final String objectKey, final Content content) {
-        LOG.info("saveObject - bucketName: " + bucketName + ", objectKey: " + objectKey + ", content: " + content);
+        LOG.info("saveObject - bucketName: {}, objectKey: {}, content: {}", bucketName, objectKey, content);
 
         final String base64Content = content.getBase64Content();
         final String contentType = content.getContentType();
@@ -46,7 +44,7 @@ public class ObjectStorageService implements ObjectStorageManager {
 
     @Override
     public Content getObject(final String bucketName, final String objectKey) throws IOException {
-        LOG.info("getObject - bucketName: " + bucketName + ", objectKey: " + objectKey);
+        LOG.info("deleteObject - bucketName: {}, objectKey: {}", bucketName, objectKey);
 
         final GetObjectRequest putBuilder = GetObjectRequest.builder()
                 .bucket(bucketName)

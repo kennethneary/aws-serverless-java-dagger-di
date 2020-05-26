@@ -2,7 +2,7 @@ package com.serverless.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.serverless.config.dagger.Injector;
+import com.serverless.config.dagger.AppComponent;
 import com.serverless.model.ApiGatewayResponse;
 import com.serverless.model.Product;
 import com.serverless.model.Response;
@@ -20,13 +20,16 @@ public class CreateProductHandler extends BaseEventHandler {
 
     private static final Logger LOG = LogManager.getLogger(CreateProductHandler.class);
 
-    @Inject
-    public ProductManager productManager;
+    @Inject ProductManager productManager;
+
+    @Override
+    public void inject(final AppComponent appComponent) {
+        appComponent.inject(this);
+    }
 
     @Override
     public ApiGatewayResponse processEvent(final APIGatewayProxyRequestEvent event, final Context context) {
         LOG.info("CreateHandler...");
-        Injector.getInjector().inject(this);
 
         try {
             final Product product = Utils.getObject(event.getBody(), Product.class);

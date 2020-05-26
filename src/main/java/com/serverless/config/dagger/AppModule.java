@@ -5,7 +5,7 @@ import com.serverless.model.Product;
 import com.serverless.service.DbManager;
 import com.serverless.service.ObjectStorageManager;
 import com.serverless.service.ProductManager;
-import com.serverless.service.impl.DynamoDbManager;
+import com.serverless.service.impl.DynamoDbService;
 import com.serverless.service.impl.ObjectStorageService;
 import com.serverless.service.impl.ProductService;
 import dagger.Module;
@@ -23,15 +23,13 @@ import javax.inject.Singleton;
 public class AppModule {
 
     @Provides
-    @Singleton
-    public ProductManager providesProductManager() {
-        return new ProductService();
+    public ProductManager providesProductManager(ProductService productService) {
+        return productService;
     }
 
     @Provides
-    @Singleton
-    public ObjectStorageManager providesObjectStorageManager() {
-        return new ObjectStorageService();
+    public ObjectStorageManager providesObjectStorageManager(ObjectStorageService objectStorageService) {
+        return objectStorageService;
     }
 
     @Provides
@@ -41,9 +39,8 @@ public class AppModule {
     }
 
     @Provides
-    @Singleton
-    public DbManager<Product> providesDbManagerProduct() {
-        return new DynamoDbManager<>();
+    public DbManager<Product> providesDbManagerProduct(DynamoDbService<Product> dynamoDbService) {
+        return dynamoDbService;
     }
 
     @Provides

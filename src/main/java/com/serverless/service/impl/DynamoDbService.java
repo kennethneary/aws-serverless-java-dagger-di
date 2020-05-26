@@ -1,8 +1,6 @@
 package com.serverless.service.impl;
 
 import com.serverless.service.DbManager;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -12,27 +10,25 @@ import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.inject.Inject;
-import javax.inject.Named;
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.serverless.Constants.*;
+@Singleton
+public class DynamoDbService<T> implements DbManager<T> {
 
-@Getter
-@Setter
-public class DynamoDbManager<T> implements DbManager<T> {
+    private static final Logger LOG = LogManager.getLogger(DynamoDbService.class);
 
-    private static final Logger LOG = LogManager.getLogger(DynamoDbManager.class);
+    @Inject DynamoDbTable<T> table;
 
-    @Inject
-    public DynamoDbTable<T> table;
+    @Inject Class<T> classType;
 
     @Inject
-    public Class<T> classType;
+    public DynamoDbService() {}
 
     @Override
     public T getById(final String id) {
-        LOG.info("getById - id: " + id);
+        LOG.info("getById - id: {}", id);
 
         final Key key = Key.builder()
                 .partitionValue(id)
@@ -42,7 +38,7 @@ public class DynamoDbManager<T> implements DbManager<T> {
 
     @Override
     public void save(final String partitionKey, final T object) {
-        LOG.info("save - partitionKey: " + partitionKey + ", object: " + object);
+        LOG.info("save - partitionKey: {}, object: {}", partitionKey, object);
 
         final Expression conditionExpression = Expression.builder()
                 .expression("attribute_not_exists(#primaryKey)")
@@ -59,7 +55,7 @@ public class DynamoDbManager<T> implements DbManager<T> {
 
     @Override
     public void deleteById(final String partitionKey, final String id) {
-        LOG.info("deleteById - partitionKey: " + partitionKey + ", id: " + id);
+        LOG.info("deleteById - partitionKey: {}, id: {}", partitionKey, id);
 
         final Key key = Key.builder()
                 .partitionValue(id)
@@ -93,7 +89,7 @@ public class DynamoDbManager<T> implements DbManager<T> {
 
     @Override
     public List<T> query(final String id) {
-        LOG.info("query - id" + id);
+        LOG.info("query - id: {}", id);
 
         final Key key = Key.builder()
                 .partitionValue(id)
@@ -113,7 +109,7 @@ public class DynamoDbManager<T> implements DbManager<T> {
 
     @Override
     public List<T> queryGSI(final String indexName, final String id) {
-        LOG.info("query - id" + id);
+        LOG.info("query - id: {}", id);
 
         final Key key = Key.builder()
                 .partitionValue(id)
@@ -134,7 +130,7 @@ public class DynamoDbManager<T> implements DbManager<T> {
 
     @Override
     public void update(final String partitionKey, final T object) {
-        LOG.info("update - partitionKey: " + partitionKey + ", object: " + object);
+        LOG.info("update - partitionKey: {}, object: {}", partitionKey, object);
 
         final Expression conditionExpression = Expression.builder()
                 .expression("attribute_exists(#primaryKey)")

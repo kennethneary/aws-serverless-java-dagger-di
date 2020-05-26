@@ -5,14 +5,13 @@ import com.serverless.model.Product;
 import com.serverless.service.DbManager;
 import com.serverless.service.ObjectStorageManager;
 import com.serverless.service.ProductManager;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.StringUtils;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -20,21 +19,21 @@ import java.util.UUID;
 
 import static com.serverless.Constants.*;
 
-@Getter
-@Setter
+@Singleton
 public class ProductService implements ProductManager {
 
     private static final Logger LOG = LogManager.getLogger(ProductService.class);
 
-    @Inject
-    public ObjectStorageManager osm;
+    @Inject ObjectStorageManager osm;
+
+    @Inject DbManager<Product> db;
 
     @Inject
-    public DbManager<Product> db;
+    public ProductService() {}
 
     @Override
     public String saveProduct(final Product product) {
-        LOG.info("saveProduct - product: " + product);
+        LOG.info("saveProduct - product: {}", product);
 
         final String id = UUID.randomUUID().toString();
         final String timestamp = Instant.now().toString();
@@ -53,7 +52,7 @@ public class ProductService implements ProductManager {
 
     @Override
     public Product getProductById(final String id) throws IOException {
-        LOG.info("getProductById - id: " + id);
+        LOG.info("getProductById - id: {}", id);
 
         final Product product = this.db.getById(id);
         final Content content = this.osm.getObject(PRODUCTS_BUCKET_NAME.getValue(), id);
@@ -63,8 +62,7 @@ public class ProductService implements ProductManager {
 
     @Override
     public void deleteProductById(final String id) {
-        LOG.info("deleteProductById - id: " + id);
-        LOG.info("PRODUCTS_TABLE_PRIMARY_ID.getValue() : " + PRODUCTS_TABLE_PRIMARY_ID.getValue());
+        LOG.info("deleteProductById - id: {}", id);
 
         this.db.deleteById(PRODUCTS_TABLE_PRIMARY_ID.getValue(), id);
 
@@ -79,7 +77,7 @@ public class ProductService implements ProductManager {
 
     @Override
     public void updateProduct(final String id, final Product product) {
-        LOG.info("updateProduct - id: " + id + ", product: " + product);
+        LOG.info("updateProduct - id: {}, product: {}", id, product);
 
         product.setId(id);
         this.db.update(PRODUCTS_TABLE_PRIMARY_ID.getValue(), product);
@@ -95,7 +93,7 @@ public class ProductService implements ProductManager {
 
     @Override
     public List<Product> queryProductByName(final String name) {
-        LOG.info("queryProduct - name: " + name);
+        LOG.info("queryProduct - name: {}", name);
 
         // do not return s3 content. get client to call specific item for performance
         return this.db.queryGSI(PRODUCTS_TABLE_SECONDARY_INDEX.getValue(), name);
@@ -110,7 +108,7 @@ public class ProductService implements ProductManager {
     }
 
     private boolean isValidS3Body(Content content) {
-        LOG.info("isValidS3Body - content: " + content);
+        LOG.info("isValidS3Body - content: {}", content);
 
         return content != null && StringUtils.isNotBlank(content.getBase64Content())
                 && StringUtils.isNotBlank(content.getContentType());
