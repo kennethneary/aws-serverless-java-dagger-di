@@ -2,3 +2,4 @@
 
 - Uses: ApiGateway, S3, DynamoDb, Lambda
 - It uses Dagger as its dependency injection
+- Makefile includes aliases to commands 
