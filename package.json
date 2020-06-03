@@ -1,22 +1,12 @@
 {
   "name": "aws-serverless-java-dagger-di",
-  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kennethneary/aws-serverless-java-dagger-di.git"
   },
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kennethneary/aws-serverless-java-dagger-di/issues"
-  },
-  "homepage": "https://github.com/kennethneary/aws-serverless-java-dagger-di#readme",
   "dependencies": {},
   "devDependencies": {
     "serverless-cloudformation-sub-variables": "^0.2.1",
